@@ -32,3 +32,30 @@ Lets see if it runs (this needs to be in the same folder as `manage.py`):
     [2018-02-14 01:31:06 +0000] [6236] [INFO] Worker exiting (pid: 6236)
     [2018-02-13 17:31:06 +0000] [6232] [INFO] Shutting down: Master
     $
+
+Okay, everything runs. Lets see if we can save some Docker build time:
+
+    $ sudo docker search python
+    ....
+    $ sudo docker search django
+    ....
+    $ sudo docker search gunicorn
+    ....
+
+Hmm, maybe it would be faster to do a search from:
+
+    https://hub.docker.com/explore/
+
+Or maybe not, it looks like the official Django image is __deprecated__:
+
+    https://hub.docker.com/_/django/
+
+[This page has a link to the Docker Store version of Django: 404]
+
+Okay, the recommendation is to start with a Python image, lets do that.
+
+The options are endless:
+
+    https://hub.docker.com/_/python/
+
+[Of course, it doesn't really make any sense to Dockerize an app with a local database - but we will address that later.]
