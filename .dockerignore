@@ -1,0 +1,9 @@
+.dockerignore
+Dockerfile
+
+db.sqlite3
+
+*.pyc
+*.pyo
+
+.git
