@@ -3,6 +3,8 @@ Dockerfile
 
 db.sqlite3
 
+images/
+
 *.pyc
 *.pyo
 
