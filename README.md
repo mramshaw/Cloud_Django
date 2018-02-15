@@ -4,6 +4,8 @@ This project follows on from my [Writing_Django](https://github.com/mramshaw/Wri
 
 It will use [gunicorn](http://gunicorn.org/) which is a web server for [Django](https://docs.djangoproject.com/en/1.11/howto/deployment/wsgi/gunicorn/). Specifically, it is a [WSGI](https://en.wikipedia.org/wiki/Web_Server_Gateway_Interface) server.
 
+## gunicorn
+
 To install:
 
     $ pip install --user gunicorn
@@ -33,7 +35,11 @@ Lets see if it runs (this needs to be in the same folder as `manage.py`):
     [2018-02-13 17:31:06 +0000] [6232] [INFO] Shutting down: Master
     $
 
-Okay, everything runs. Lets see if we can save some Docker build time:
+Okay, everything runs.
+
+## Docker
+
+Lets see if we can save some Docker build time:
 
     $ sudo docker search python
     ....
@@ -59,3 +65,8 @@ The options are endless:
     https://hub.docker.com/_/python/
 
 [Of course, it doesn't really make any sense to Dockerize an app with a local database - but we will address that later.]
+
+## To Do
+
+- [ ] Upgrade to most recent __minikube__
+- [ ] Upgrade to most recent __kubectl__
