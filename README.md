@@ -124,7 +124,7 @@ The 'service' component of `polls.yaml` is currently a stub so we will port-forw
 
 This will make our app available at `127.0.0.1:8000` where we will test it:
 
-![Minikubed_App](images/minikube_app.png)
+![Minikubed_App](images/minikubed_app.png)
 
 Everything works, so now we need to make it address a non-local back-end.
 
@@ -135,6 +135,9 @@ Lets teardown our local kubernetes infrastructure first:
 Finally:
 
     $ minikube stop
+    Stopping local Kubernetes cluster...
+    Machine stopped.
+    $
 
 ## To Do
 
