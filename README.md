@@ -8,7 +8,7 @@ It will also use [Docker](https://github.com/mramshaw/Docker) and [Kubernetes](h
 
 ## gunicorn
 
-To install:
+To install locally:
 
     $ pip install --user gunicorn
 
@@ -127,6 +127,14 @@ This will make our app available at `127.0.0.1:8000` where we will test it:
 ![Minikubed_App](images/minikube_app.png)
 
 Everything works, so now we need to make it address a non-local back-end.
+
+Lets teardown our local kubernetes infrastructure first:
+
+    $ kubectl delete svc/polls deploy/polls
+
+Finally:
+
+    $ minikube stop
 
 ## To Do
 
