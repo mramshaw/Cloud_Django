@@ -147,18 +147,18 @@ We will repeat most of the steps listed here:
 
 However, we will be using __postgres__ instead of __sqlite__.
 
-#### psycopg2
+#### psycopg2-binary
 
-We will need the Python Postgres module `psycopg2`:
+We will need the Python Postgres module `psycopg2-binary`:
 
-    $ pip install --user psycopg2
+    $ pip install --user psycopg2-binary
 
-[as usual, replace with `pip3` for Python3.]
+[As usual, replace with `pip3` for Python3.]
 
 Verify the version:
 
-    $ pip list --format=legacy | grep psycopg2
-    psycopg2 (2.7.4)
+    $ pip list --format=legacy | grep psycopg2-binary
+    psycopg2-binary (2.7.4)
     $
 
 [2.7.4]
@@ -201,7 +201,11 @@ And now the __important part__ - creating our database:
     postgres=# \q
     $
 
-Okay, we have a functional `postgres`.
+Okay, we have a functional `postgres`. Lets tear it down:
+
+    $ docker kill polls-postgres
+
+[We will go through this again in `minikube` shortly.]
 
 #### Configuration
 
@@ -231,9 +235,243 @@ Then remove or comment:
 It's actually even worse as we are using the __root__ postgres user and password.
 We will need to harden all of this before any move into production.]
 
+#### minikube
+
+Start minikube:
+
+    $ minikube start
+    ....
+
+Start `postgres`:
+
+    $ kubectl create -f ./postgres.yaml
+
+And create our `polls` database:
+
+    $ kubectl exec -it polls-backend-67c86654df-xll2q sh
+    / # psql -U postgres
+    psql (10.2)
+    Type "help" for help.
+    
+    postgres=# CREATE DATABASE polls;
+    CREATE DATABASE
+    postgres=# \q
+    / # exit
+    $
+
+Port-forward our postgres pod (as usual, Ctrl-C to terminate):
+
+    $ kubectl port-forward polls-backend-67c86654df-xll2q 5432:5432
+
+In a new window, run our Django server (needs to be in the folder where `manage.py` resides):
+
+    $ python manage.py runserver
+    Performing system checks...
+    
+    System check identified no issues (0 silenced).
+    
+    You have 14 unapplied migration(s). Your project may not work properly until you apply the migrations for app(s): admin, auth, contenttypes, polls_app, sessions.
+    Run 'python manage.py migrate' to apply them.
+    
+    February 15, 2018 - 22:09:42
+    Django version 1.11.10, using settings 'polls.settings'
+    Starting development server at http://127.0.0.1:8000/
+    Quit the server with CONTROL-C.
+    Not Found: /
+    [15/Feb/2018 22:12:35] "GET / HTTP/1.1" 404 2017
+    ^C$
+
+Before killing it, check that it runs:
+
+![Local_App_Minikubed](images/Local_App_Minikubed.png)
+
+Lets check our [database migrations](https://docs.djangoproject.com/en/1.11/topics/migrations/):
+
+    $ python manage.py showmigrations
+    admin
+     [ ] 0001_initial
+     [ ] 0002_logentry_remove_auto_add
+    auth
+     [ ] 0001_initial
+     [ ] 0002_alter_permission_name_max_length
+     [ ] 0003_alter_user_email_max_length
+     [ ] 0004_alter_user_username_opts
+     [ ] 0005_alter_user_last_login_null
+     [ ] 0006_require_contenttypes_0002
+     [ ] 0007_alter_validators_add_error_messages
+     [ ] 0008_alter_user_username_max_length
+    contenttypes
+     [ ] 0001_initial
+     [ ] 0002_remove_content_type_name
+    polls_app
+     [ ] 0001_initial
+    sessions
+     [ ] 0001_initial
+    $
+
+And run them:
+
+    $ python manage.py migrate
+    Operations to perform:
+      Apply all migrations: admin, auth, contenttypes, polls_app, sessions
+    Running migrations:
+      Applying contenttypes.0001_initial... OK
+      Applying auth.0001_initial... OK
+      Applying admin.0001_initial... OK
+      Applying admin.0002_logentry_remove_auto_add... OK
+      Applying contenttypes.0002_remove_content_type_name... OK
+      Applying auth.0002_alter_permission_name_max_length... OK
+      Applying auth.0003_alter_user_email_max_length... OK
+      Applying auth.0004_alter_user_username_opts... OK
+      Applying auth.0005_alter_user_last_login_null... OK
+      Applying auth.0006_require_contenttypes_0002... OK
+      Applying auth.0007_alter_validators_add_error_messages... OK
+      Applying auth.0008_alter_user_username_max_length... OK
+      Applying polls_app.0001_initial... OK
+      Applying sessions.0001_initial... OK
+    $
+
+So now we can create our app migration(s):
+
+    $ python manage.py makemigrations polls_app
+    No changes detected in app 'polls_app'
+    $
+
+Interestingly, this is __not__ what I was expecting. Lets double-check:
+
+    $ mv polls_app/migrations/0001_initial.py polls_app/migrations/0001_initial.py.orig
+    $ python manage.py makemigrations polls_app
+    Migrations for 'polls_app':
+      polls_app/migrations/0001_initial.py
+        - Create model Choice
+        - Create model Question
+        - Add field question to choice
+    $ diff -uw polls_app/migrations/0001_initial.py.orig polls_app/migrations/0001_initial.py
+    --- polls_app/migrations/0001_initial.py.orig	2018-02-11 15:32:37.401180000 -0800
+    +++ polls_app/migrations/0001_initial.py	2018-02-15 14:28:24.501089257 -0800
+    @@ -1,5 +1,5 @@
+     # -*- coding: utf-8 -*-
+    -# Generated by Django 1.11.10 on 2018-02-11 23:32
+    +# Generated by Django 1.11.10 on 2018-02-15 22:28
+     from __future__ import unicode_literals
+     
+     from django.db import migrations, models
+    $
+
+Okay, looks like everything is copacetic:
+
+    $ rm polls_app/migrations/0001_initial.py.orig
+
+Lets see if the generated SQL is any different from the __sqlite__ SQL:
+
+    $ python manage.py sqlmigrate polls_app 0001
+    BEGIN;
+    --
+    -- Create model Choice
+    --
+    CREATE TABLE "polls_app_choice" ("id" serial NOT NULL PRIMARY KEY, "choice_text" varchar(200) NOT NULL, "votes" integer NOT NULL);
+    --
+    -- Create model Question
+    --
+    CREATE TABLE "polls_app_question" ("id" serial NOT NULL PRIMARY KEY, "question_text" varchar(200) NOT NULL, "pub_date" timestamp with time zone NOT NULL);
+    --
+    -- Add field question to choice
+    --
+    ALTER TABLE "polls_app_choice" ADD COLUMN "question_id" integer NOT NULL;
+    CREATE INDEX "polls_app_choice_question_id_38df74ee" ON "polls_app_choice" ("question_id");
+    ALTER TABLE "polls_app_choice" ADD CONSTRAINT "polls_app_choice_question_id_38df74ee_fk_polls_app_question_id" FOREIGN KEY ("question_id") REFERENCES "polls_app_question" ("id") DEFERRABLE INITIALLY DEFERRED;
+    COMMIT;
+    $
+
+[Yep, some very slight differences, minor SQL dialect issues.]
+
+Check for any issues:
+
+    $ python manage.py check
+    System check identified no issues (0 silenced).
+    $
+
+And __migrate__ again to apply our migrations:
+
+    $ python manage.py migrate
+    Operations to perform:
+      Apply all migrations: admin, auth, contenttypes, polls_app, sessions
+    Running migrations:
+      No migrations to apply.
+    $
+
+[Not quite what I expected, but makes sense as there haven't been any changes. if we check __showmigrations__ we will see everything is fine.]
+
+Now we will create some (different) polls:
+
+    $ python manage.py shell
+    Python 2.7.12 (default, Dec  4 2017, 14:50:18) 
+    Type "copyright", "credits" or "license" for more information.
+    
+    IPython 2.4.1 -- An enhanced Interactive Python.
+    ?         -> Introduction and overview of IPython's features.
+    %quickref -> Quick reference.
+    help      -> Python's own help system.
+    object?   -> Details about 'object', use 'object??' for extra details.
+    
+    In [1]: from polls_app.models import Question, Choice
+    
+    In [2]: Question.objects.all()
+    Out[2]: <QuerySet []>
+    
+    In [3]: from django.utils import timezone
+    
+    In [4]: q = Question(question_text="Is Django better than Flask?", pub_date=timezone.now())
+    
+    In [5]: q.save()
+    
+    In [6]: q = Question(question_text="Is Python3 better than Python2?", pub_date=timezone.now())
+    
+    In [7]: q.save()
+    
+    In [8]: Question.objects.all()
+    Out[8]: <QuerySet [<Question: Is Django better than Flask?>, <Question: Is Python3 better than Python2?>]>
+    
+    In [9]: quit
+    $
+
+Create an Admin user ('admin' and '123abcde' again):
+
+    $ python manage.py createsuperuser
+    Username (leave blank to use 'owner'): admin
+    Email address: admin@example.com
+    Password: 
+    Password (again): 
+    Superuser created successfully.
+    $
+
+Run our (local) server:
+
+    $ python manage.py runserver
+    ....
+
+Log in:
+
+![Local_App_Cloudified_Backend](images/Local_App_Cloudified_Backend.png)
+
+Okay, we have a configure `postgres` backend. Now we can replicate our Django pods.
+
+We can kill our local server, as well as our `postgres` port-forwarding (but __not__ our postgres pod!).
+
+#### Docker build (postgres 2.0 build, includes 'psycopg2-binary')
+
+Lets build our dockerized app again:
+
+    $ sudo docker build -t mramshaw4docs/python-django-gunicorn:2.0 .
+
+#### Replicated Django
+
+
 ## To Do
 
 - [x] Upgrade to most recent __minikube__ (v0.25.0)
 - [x] Upgrade to most recent __kubectl__ (v1.8.6 - client, v1.9.0 - server)
 - [x] Verify `polls` app (written and tested with Python __2.7.12__) works with the latest Python (__3.6.4__)
 - [ ] Harden everything with non-default passwords and credentials
+- [ ] Persist the back-end database
+- [ ] Upgrade the 2.0 Django server to Python3
