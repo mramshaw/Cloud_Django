@@ -139,8 +139,101 @@ Finally:
     Machine stopped.
     $
 
+## Migration to postgres
+
+We will repeat most of the steps listed here:
+
+    https://docs.djangoproject.com/en/1.11/intro/tutorial02/
+
+However, we will be using __postgres__ instead of __sqlite__.
+
+#### psycopg2
+
+We will need the Python Postgres module `psycopg2`:
+
+    $ pip install --user psycopg2
+
+[as usual, replace with `pip3` for Python3.]
+
+Verify the version:
+
+    $ pip list --format=legacy | grep psycopg2
+    psycopg2 (2.7.4)
+    $
+
+[2.7.4]
+
+#### Docker
+
+We will use the official Docker image for `postgres`:
+
+    https://hub.docker.com/_/postgres/
+
+Run it:
+
+    $ docker run --rm -it --name polls-postgres -d postgres:10.2-alpine
+
+And a quick smoke test:
+
+    $ docker run -it --rm --link polls-postgres:postgres postgres:10.2-alpine psql -h postgres -U postgres
+    psql (10.2)
+    Type "help" for help.
+    
+    postgres=# help
+    You are using psql, the command-line interface to PostgreSQL.
+    Type:  \copyright for distribution terms
+           \h for help with SQL commands
+           \? for help with psql commands
+           \g or terminate with semicolon to execute query
+           \q to quit
+    postgres=# SELECT 1;
+     ?column? 
+    ----------
+            1
+    (1 row)
+    
+    postgres=#
+
+And now the __important part__ - creating our database:
+
+    postgres=# CREATE DATABASE polls;
+    CREATE DATABASE
+    postgres=# \q
+    $
+
+Okay, we have a functional `postgres`.
+
+#### Configuration
+
+Change `polls\settings.py` as follows. First insert:
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'polls',
+            'USER': 'postgres',
+            'PASSWORD': 'postgres',
+            'HOST': '127.0.0.1',
+            'PORT': 5432
+        }
+    }
+
+Then remove or comment:
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
+
+[This uses __default passwords__ which is generally a very lazy and insecure practice.
+It's actually even worse as we are using the __root__ postgres user and password.
+We will need to harden all of this before any move into production.]
+
 ## To Do
 
 - [x] Upgrade to most recent __minikube__ (v0.25.0)
 - [x] Upgrade to most recent __kubectl__ (v1.8.6 - client, v1.9.0 - server)
 - [x] Verify `polls` app (written and tested with Python __2.7.12__) works with the latest Python (__3.6.4__)
+- [ ] Harden everything with non-default passwords and credentials
