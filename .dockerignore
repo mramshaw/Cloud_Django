@@ -1,11 +1,17 @@
+Dockerfile_1.0
+Dockerfile_2.0
 .dockerignore
-Dockerfile
 
-db.sqlite3
+.git/
+.gitignore
 
 images/
 
-*.pyc
-*.pyo
+# Recursive ignore of .pyc/.pyd/.pyo files
+**/*.py[cod]
 
-.git
+*.swp
+
+*.yaml
+
+README.md

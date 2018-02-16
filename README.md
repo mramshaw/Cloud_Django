@@ -72,7 +72,7 @@ The options are endless:
 
 Lets build our dockerized app:
 
-    $ sudo docker build -t mramshaw4docs/python-django-gunicorn:1.0 .
+    $ sudo docker build -f Dockerfile_1.0 -t mramshaw4docs/python-django-gunicorn:1.0 .
 
 Available from DockerHub [here](https://hub.docker.com/r/mramshaw4docs/python-django-gunicorn/).
 
@@ -460,9 +460,9 @@ We can kill our local server, as well as our `postgres` port-forwarding (but __n
 
 #### Docker build (postgres 2.0 build, includes 'psycopg2')
 
-Lets build our dockerized app again:
+Lets build our dockerized app again - this will be the __2.0__ version with postgres support:
 
-    $ sudo docker build -t mramshaw4docs/python-django-gunicorn:2.0 .
+    $ sudo docker build -f Dockerfile_2.0 -t mramshaw4docs/python-django-gunicorn:2.0 .
 
 And check versions:
 
@@ -509,4 +509,4 @@ port-forwarding works).
 - [x] Verify `polls` app (written and tested with Python __2.7.12__) works with the latest Python (__3.6.4__)
 - [ ] Harden everything with non-default passwords and credentials
 - [ ] Persist the back-end database
-- [ ] Upgrade the 2.0 Django server to Python3
+- [ ] Upgrade the 2.0 Django server to a 3.0 Django server (Python3)
