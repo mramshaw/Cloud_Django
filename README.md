@@ -66,7 +66,7 @@ The options are endless:
 
     https://hub.docker.com/_/python/
 
-[Of course, it doesn't really make any sense to Dockerize an app with a local database - but we will address that later.]
+[Of course, it doesn't really make any sense to Dockerize an app with a bundled database - but we will address that later.]
 
 #### Docker build
 
@@ -126,7 +126,7 @@ This will make our app available at `127.0.0.1:8000` where we will test it:
 
 ![Minikubed_App](images/minikubed_app.png)
 
-Everything works, so now we need to make it address a non-local back-end.
+Everything works, so now we need to make it address a non-bundled back-end.
 
 Lets teardown our local kubernetes infrastructure first:
 
@@ -147,18 +147,18 @@ We will repeat most of the steps listed here:
 
 However, we will be using __postgres__ instead of __sqlite__.
 
-#### psycopg2-binary
+#### psycopg2
 
-We will need the Python Postgres module `psycopg2-binary`:
+We will need the Python Postgres module `psycopg2`:
 
-    $ pip install --user psycopg2-binary
+    $ pip install --user psycopg2
 
 [As usual, replace with `pip3` for Python3.]
 
 Verify the version:
 
-    $ pip list --format=legacy | grep psycopg2-binary
-    psycopg2-binary (2.7.4)
+    $ pip list --format=legacy | grep psycopg2
+    psycopg2 (2.7.4)
     $
 
 [2.7.4]
@@ -458,14 +458,34 @@ Okay, we have a configure `postgres` backend. Now we can replicate our Django po
 
 We can kill our local server, as well as our `postgres` port-forwarding (but __not__ our postgres pod!).
 
-#### Docker build (postgres 2.0 build, includes 'psycopg2-binary')
+#### Docker build (postgres 2.0 build, includes 'psycopg2')
 
 Lets build our dockerized app again:
 
     $ sudo docker build -t mramshaw4docs/python-django-gunicorn:2.0 .
 
+And check versions:
+
+    $ docker run --rm -it mramshaw4docs/python-django-gunicorn:2.0 /bin/sh
+    /usr/src/app # python --version
+    Python 2.7.13
+    /usr/src/app # python -m django --version
+    1.11.10
+    /usr/src/app # gunicorn --version
+    gunicorn (version 19.7.1)
+    /usr/src/app # pip list --format=legacy | grep psycopg2-binary
+    /usr/src/app # pip list --format=legacy | grep psycopg2
+    psycopg2 (2.7.4)
+    /usr/src/app # exit
+    $
+
+[Hmm, that should really have been Python 3, can fix later.]
+
 #### Replicated Django
 
+Lets change `polls.yaml` for our __2.0__ version and 3 replicas. And run:
+
+    $ kubectl create -f ./polls/yaml
 
 ## To Do
 
