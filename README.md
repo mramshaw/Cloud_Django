@@ -209,7 +209,7 @@ Okay, we have a functional `postgres`. Lets tear it down:
 
 #### Configuration
 
-Change `polls\settings.py` as follows. First insert:
+Change `polls/settings.py` as follows. First insert:
 
     DATABASES = {
         'default': {
@@ -400,7 +400,7 @@ And __migrate__ again to apply our migrations:
       No migrations to apply.
     $
 
-[Not quite what I expected, but makes sense as there haven't been any changes. if we check __showmigrations__ we will see everything is fine.]
+[Not quite what I expected, but makes sense as there haven't been any changes. If we check __showmigrations__ we will see everything is fine.]
 
 Now we will create some (different) polls:
 
@@ -454,7 +454,7 @@ Log in:
 
 ![Local_App_Cloudified_Backend](images/Local_App_Cloudified_Backend.png)
 
-Okay, we have a configure `postgres` backend. Now we can replicate our Django pods.
+Okay, we have a configured `postgres` backend. Now we can replicate our Django pods.
 
 We can kill our local server, as well as our `postgres` port-forwarding (but __not__ our postgres pod!).
 
@@ -483,9 +483,24 @@ And check versions:
 
 #### Replicated Django
 
-Lets change `polls.yaml` for our __2.0__ version and 3 replicas. And run:
+Lets change `polls.yaml` for our __2.0__ version and 3 replicas. Save it as 'polls-postgres.yaml' and run:
 
-    $ kubectl create -f ./polls/yaml
+    $ kubectl create -f ./polls-postgres.yaml
+
+Our service is _still_ a stub, the plan here is to port-forward each pod to verify that they all use the same back-end.
+We will use a different local port for each pod, plus we will run everything in the background (since we know that
+port-forwarding works).
+
+    $ kubectl port-forward polls-55b6488bb4-gvc6p 8000:8000 &
+    [1] 18093
+    $ Forwarding from 127.0.0.1:8000 -> 8000
+    kubectl port-forward polls-55b6488bb4-r9kgr 8001:8000 &
+    [2] 18108
+    $ Forwarding from 127.0.0.1:8001 -> 8000
+    kubectl port-forward polls-55b6488bb4-vxxtc 8002:8000 &
+    [3] 18121
+    $ Forwarding from 127.0.0.1:8002 -> 8000
+    $
 
 ## To Do
 

@@ -1,0 +1,32 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: polls
+  labels:
+    app: polls
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: polls
+    spec:
+      containers:
+      - name: polls-app
+        image: mramshaw4docs/python-django-gunicorn:2.0
+        ports:
+        - containerPort: 8000
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: polls
+  labels:
+    app: polls
+spec:
+  ports:
+  - port: 8000
+  selector:
+    app: polls
