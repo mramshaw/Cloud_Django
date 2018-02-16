@@ -217,8 +217,8 @@ Change `polls/settings.py` as follows. First insert:
             'NAME': 'polls',
             'USER': 'postgres',
             'PASSWORD': 'postgres',
-            'HOST': '127.0.0.1',
-            'PORT': 5432
+            'HOST': os.getenv('POLLS_BACKEND_SERVICE_HOST', '127.0.0.1'),
+            'PORT': os.getenv('POLLS_BACKEND_SERVICE_PORT', 5432)
         }
     }
 
