@@ -4,6 +4,8 @@ This project follows on from my [Writing_Django](https://github.com/mramshaw/Wri
 
 It will use [gunicorn](http://gunicorn.org/) which is a web server for [Django](https://docs.djangoproject.com/en/1.11/howto/deployment/wsgi/gunicorn/). Specifically, it is a [WSGI](https://en.wikipedia.org/wiki/Web_Server_Gateway_Interface) server.
 
+It will use [PostgreSQL](https://www.postgresql.org/) for persistence via the Python Postgres module `psycopg2`.
+
 It will also use [Docker](https://github.com/mramshaw/Docker) and [Kubernetes](https://github.com/mramshaw/Kubernetes) (initially via [minikube](https://github.com/kubernetes/minikube)).
 
 ## gunicorn
@@ -155,7 +157,7 @@ We will need the Python Postgres module `psycopg2`:
 
 [As usual, replace with `pip3` for Python3.]
 
-Verify the version:
+Verify the latest version:
 
     $ pip list --format=legacy | grep psycopg2
     psycopg2 (2.7.4)
@@ -233,7 +235,8 @@ Then remove or comment:
 
 [This uses __default passwords__ which is generally a very lazy and insecure practice.
 It's actually even worse as we are using the __root__ postgres user and password.
-We will need to harden all of this before any move into production.]
+The __default__ root user and password. We will need to harden all of this before
+we get too much further, but especially before any move into production.]
 
 #### minikube
 
@@ -265,6 +268,15 @@ Port-forward our postgres pod (as usual, Ctrl-C to terminate):
 
 In a new window, run our Django server (needs to be in the folder where `manage.py` resides):
 
+    $ cd polls
+    $ ls -al
+    total 64
+    drwxrwxr-x 4 owner owner  4096 Feb 15 22:46 .
+    drwxrwxr-x 5 owner owner  4096 Feb 16 08:27 ..
+    -rw-r--r-- 1 owner owner 41984 Feb 12 10:24 db.sqlite3
+    -rwxrwxr-x 1 owner owner   803 Feb 11 13:40 manage.py
+    drwxrwxr-x 2 owner owner  4096 Feb 15 19:31 polls
+    drwxrwxr-x 3 owner owner  4096 Feb 15 11:58 polls_app
     $ python manage.py runserver
     Performing system checks...
     
@@ -402,7 +414,7 @@ And __migrate__ again to apply our migrations:
 
 [Not quite what I expected, but makes sense as there haven't been any changes. If we check __showmigrations__ we will see everything is fine.]
 
-Now we will create some (different) polls:
+Now we will create some (different) poll questions:
 
     $ python manage.py shell
     Python 2.7.12 (default, Dec  4 2017, 14:50:18) 
@@ -464,6 +476,8 @@ Lets build our dockerized app again - this will be the __2.0__ version with post
 
     $ sudo docker build -f Dockerfile_2.0 -t mramshaw4docs/python-django-gunicorn:2.0 .
 
+Available from DockerHub [here](https://hub.docker.com/r/mramshaw4docs/python-django-gunicorn/).
+
 And check versions:
 
     $ docker run --rm -it mramshaw4docs/python-django-gunicorn:2.0 /bin/sh
@@ -507,6 +521,7 @@ port-forwarding works).
 - [x] Upgrade to most recent __minikube__ (v0.25.0)
 - [x] Upgrade to most recent __kubectl__ (v1.8.6 - client, v1.9.0 - server)
 - [x] Verify `polls` app (written and tested with Python __2.7.12__) works with the latest Python (__3.6.4__)
+- [ ] Add Kubernetes health checks
 - [ ] Harden everything with non-default passwords and credentials
 - [ ] Persist the back-end database
 - [ ] Upgrade the 2.0 Django server to a 3.0 Django server (Python3)
