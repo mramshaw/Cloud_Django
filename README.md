@@ -130,6 +130,9 @@ This will make our app available at `127.0.0.1:8000` where we will test it:
 
 Everything works, so now we need to make it address a non-bundled back-end.
 
+[Although it *works*, it looks pretty horrible as our `static` content is missing.
+ We can fix that later, possibly with an `ingress` controller and/or nginx.]
+
 Lets teardown our local kubernetes infrastructure first:
 
     $ kubectl delete svc/polls deploy/polls
@@ -522,6 +525,7 @@ port-forwarding works).
 - [x] Upgrade to most recent __kubectl__ (v1.8.6 - client, v1.9.0 - server)
 - [x] Verify `polls` app (written and tested with Python __2.7.12__) works with the latest Python (__3.6.4__)
 - [ ] Add Kubernetes health checks
+- [ ] Handle Django static content (CSS, etc.)
 - [ ] Harden everything with non-default passwords and credentials
 - [ ] Persist the back-end database
 - [ ] Upgrade the 2.0 Django server to a 3.0 Django server (Python3)
