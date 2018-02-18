@@ -2,11 +2,24 @@
 
 This project follows on from my [Writing_Django](https://github.com/mramshaw/Writing_Django) project, which is a simple Hello World in Django.
 
-It will use [gunicorn](http://gunicorn.org/) which is a web server for [Django](https://docs.djangoproject.com/en/1.11/howto/deployment/wsgi/gunicorn/). Specifically, it is a [WSGI](https://en.wikipedia.org/wiki/Web_Server_Gateway_Interface) server.
+It will use [gunicorn](http://gunicorn.org/) which is a web server for [Django](https://docs.djangoproject.com/en/1.11/howto/deployment/wsgi/gunicorn/).
+Specifically, it is a [WSGI](https://en.wikipedia.org/wiki/Web_Server_Gateway_Interface) server.
 
-It will use [PostgreSQL](https://www.postgresql.org/) for persistence via the Python Postgres module `psycopg2`.
+It will also use [Docker](https://github.com/mramshaw/Docker) and [Kubernetes](https://github.com/mramshaw/Kubernetes)
+ (initially via [minikube](https://github.com/kubernetes/minikube)).
 
-It will also use [Docker](https://github.com/mramshaw/Docker) and [Kubernetes](https://github.com/mramshaw/Kubernetes) (initially via [minikube](https://github.com/kubernetes/minikube)).
+It will be migrated to [PostgreSQL](https://www.postgresql.org/) for persistence via the Python Postgres module `psycopg2`.
+
+The plan of attack is as follows:
+
+* [Install and test 'gunicorn'](https://github.com/mramshaw/Cloud_Django#gunicorn)
+* [Dockerize our app](https://github.com/mramshaw/Cloud_Django#Docker)
+* [Run our app (minikube; local Kubernetes)](https://github.com/mramshaw/Cloud_Django#minikube)
+* [Migrate our app to PostgreSQL](https://github.com/mramshaw/Cloud_Django#migration-to-postgres)
+
+Once all of this has been carried out locally, our app will be ready to be deployed in the cloud (AWS, Azure, GCP, etc.).
+
+One of the convenient things about __minikube__ is that it is local; this saves a lot of upload/download time. It's ___fast___.
 
 ## gunicorn
 
@@ -121,19 +134,78 @@ The 'service' component of `polls.yaml` is currently a stub so we will port-forw
     Forwarding from 127.0.0.1:8000 -> 8000
     Handling connection for 8000
     ....
-    Handling connection for 8000
-    ^C$
 
 This will make our app available at `127.0.0.1:8000` where we will test it:
 
 ![Minikubed_App](images/minikubed_app.png)
+
+Okay, so now we know the deployment portion of our `yaml` is good. We can kill our port-forwarding now (Ctrl-C to terminate):
+
+    Handling connection for 8000
+    ^C$
+
+Lets increase the number of replicas to 2. Edit `polls.yaml`, save it, and apply it:
+
+    $ kubectl apply -f ./polls.yaml
+    Warning: kubectl apply should be used on resource created by either kubectl create --save-config or kubectl apply
+    deployment "polls" configured
+    service "polls" unchanged
+    $
+
+The warning is because this resource were created with `kubectl create`. If we change the replicas back to 1 and run `kubectl apply` again:
+
+    $ kubectl apply -f ./polls.yaml
+    deployment "polls" configured
+    service "polls" unchanged
+    $
+
+So lets increase the number of replicas to 2 again:
+
+    $ kubectl apply -f ./polls.yaml
+    deployment "polls" configured
+    service "polls" unchanged
+    $
+
+[Note no warning this time; the last `kubectl` was an `apply`.]
+
+Now we will port-forward each of our pods and change each poll question so each pod has a different question:
+
+    $ kubectl port-forward polls-7cd964c89-4px25 8000:8000 &
+    [1] 5899
+    $ Forwarding from 127.0.0.1:8000 -> 8000
+    kubectl port-forward polls-7cd964c89-wqkxc 8001:8000 &
+    [2] 5912
+    $
+
+__Pod 1__
+
+![Pod_1_Question_1](images/Pod_1_Question_1.png)
+
+__Pod 2__
+
+![Pod_2_Question_2](images/Pod_2_Question_2.png)
+
+Now, we want to access our Kubernetes pods through a `service`. But first we will need
+to open up `gunicorn` with a `gunicorn.conf` file. By default, `gunicorn` runs locally
+and will only accept local connections. We will set it to run in __promiscuous mode__
+(which is a terrible practice, we should really run it behind a front-end, but we can
+fix this later).
+
+We will also open up our Django settings to allow '192.168.99.100' (minikube traffic)
+as well. Change the line `ALLOWED_HOSTS = []` in `polls/settings.py` as follows:
+
+    ALLOWED_HOSTS = ['192.168.99.100']
+
+Now we can access our Kubernetes service (this will pop open a browser):
+
+    $ minikube service polls
 
 Everything works, so now we need to make it address a non-bundled back-end.
 
 [Although it *works*, it looks pretty horrible as our `static` content is missing.
  We can fix that later, possibly with an `ingress` controller and/or nginx.]
 
-Lets teardown our local kubernetes infrastructure first:
+Lets teardown our local Kubernetes infrastructure first:
 
     $ kubectl delete svc/polls deploy/polls
 
@@ -526,6 +598,7 @@ port-forwarding works).
 - [x] Verify `polls` app (written and tested with Python __2.7.12__) works with the latest Python (__3.6.4__)
 - [ ] Add Kubernetes health checks
 - [ ] Handle Django static content (CSS, etc.)
-- [ ] Harden everything with non-default passwords and credentials
+- [ ] Harden Django/gunicorn configuration
+- [ ] Harden everything else with non-default passwords and credentials
 - [ ] Persist the back-end database
 - [ ] Upgrade the 2.0 Django server to a 3.0 Django server (Python3)

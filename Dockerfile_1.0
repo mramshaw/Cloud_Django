@@ -7,5 +7,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY polls/. .
 
+COPY gunicorn.conf .
+
 # By default, gunicorn will start on port 8000
-CMD gunicorn polls.wsgi
+CMD gunicorn -c gunicorn.conf polls.wsgi
