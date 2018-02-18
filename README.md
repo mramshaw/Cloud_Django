@@ -13,8 +13,8 @@ It will be migrated to [PostgreSQL](https://www.postgresql.org/) for persistence
 The plan of attack is as follows:
 
 * [Install and test 'gunicorn'](https://github.com/mramshaw/Cloud_Django#gunicorn)
-* [Dockerize our app](https://github.com/mramshaw/Cloud_Django#Docker)
-* [Run our app (minikube; local Kubernetes)](https://github.com/mramshaw/Cloud_Django#minikube)
+* [Dockerize our app](https://github.com/mramshaw/Cloud_Django#docker)
+* [Run our app (minikube: local Kubernetes)](https://github.com/mramshaw/Cloud_Django#minikube)
 * [Migrate our app to PostgreSQL](https://github.com/mramshaw/Cloud_Django#migration-to-postgres)
 
 Once all of this has been carried out locally, our app will be ready to be deployed in the cloud (AWS, Azure, GCP, etc.).
@@ -52,6 +52,26 @@ Lets see if it runs (this needs to be in the same folder as `manage.py`):
     [2018-02-13 17:31:06 +0000] [6232] [INFO] Shutting down: Master
     $
 
+Now we need to open up `gunicorn` with a `gunicorn.conf` file. By default, `gunicorn`
+runs locally and will only accept local connections. We will configure it to run in
+__promiscuous mode__ (which is a terrible practice, we should really run it behind a
+front-end, but we can fix this later).
+
+Once more, with a config file:
+
+    $ gunicorn -c ../gunicorn.conf polls.wsgi
+    [2018-02-18 15:24:35 +0000] [16256] [INFO] Starting gunicorn 19.7.1
+    [2018-02-18 15:24:35 +0000] [16256] [INFO] Listening at: http://0.0.0.0:8000 (16256)
+    [2018-02-18 15:24:35 +0000] [16256] [INFO] Using worker: sync
+    [2018-02-18 15:24:35 +0000] [16260] [INFO] Booting worker with pid: 16260
+    ...
+    ^C[2018-02-18 15:24:37 +0000] [16256] [INFO] Handling signal: int
+    [2018-02-18 23:24:37 +0000] [16299] [INFO] Worker exiting (pid: 16299)
+    ...
+    [2018-02-18 23:24:37 +0000] [16285] [INFO] Worker exiting (pid: 16285)
+    [2018-02-18 15:24:37 +0000] [16256] [INFO] Shutting down: Master
+    $
+
 Okay, everything runs.
 
 ## Docker
@@ -82,6 +102,15 @@ The options are endless:
     https://hub.docker.com/_/python/
 
 [Of course, it doesn't really make any sense to Dockerize an app with a bundled database - but we will address that later.]
+
+#### Django settings
+
+We need to change our Django settings to allow '192.168.99.100' (minikube traffic).
+Change the line `ALLOWED_HOSTS = []` in `polls/settings.py` as follows:
+
+    ALLOWED_HOSTS = ['192.168.99.100']
+
+[We should revisit these settings once everything runs behind a front-end.]
 
 #### Docker build
 
@@ -168,7 +197,7 @@ So lets increase the number of replicas to 2 again:
 
 [Note no warning this time; the last `kubectl` was an `apply`.]
 
-Now we will port-forward each of our pods and change each poll question so each pod has a different question:
+Now we will port-forward each of our Kubernetes pods and change each poll question so each pod has a different question:
 
     $ kubectl port-forward polls-7cd964c89-4px25 8000:8000 &
     [1] 5899
@@ -185,18 +214,8 @@ __Pod 2__
 
 ![Pod_2_Question_2](images/Pod_2_Question_2.png)
 
-Now, we want to access our Kubernetes pods through a `service`. But first we will need
-to open up `gunicorn` with a `gunicorn.conf` file. By default, `gunicorn` runs locally
-and will only accept local connections. We will set it to run in __promiscuous mode__
-(which is a terrible practice, we should really run it behind a front-end, but we can
-fix this later).
-
-We will also open up our Django settings to allow '192.168.99.100' (minikube traffic)
-as well. Change the line `ALLOWED_HOSTS = []` in `polls/settings.py` as follows:
-
-    ALLOWED_HOSTS = ['192.168.99.100']
-
-Now we can access our Kubernetes service (this will pop open a browser):
+Now we can try to access our Kubernetes pods through a Kubernetes service
+(this will pop open a browser):
 
     $ minikube service polls
 

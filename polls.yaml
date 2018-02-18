@@ -3,19 +3,21 @@ kind: Deployment
 metadata:
   name: polls
   labels:
-    app: polls
+    run: polls
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: polls
+        run: polls
     spec:
       containers:
       - name: polls-app
         image: mramshaw4docs/python-django-gunicorn:1.0
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8000
+          protocol: TCP
 
 ---
 
@@ -24,9 +26,12 @@ kind: Service
 metadata:
   name: polls
   labels:
-    app: polls
+    run: polls
 spec:
+  type: NodePort
   ports:
   - port: 8000
+    protocol: TCP
+    targetPort: 8000
   selector:
-    app: polls
+    run: polls
