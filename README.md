@@ -105,10 +105,11 @@ The options are endless:
 
 #### Django settings
 
-We need to change our Django settings to allow '192.168.99.100' (minikube traffic).
-Change the line `ALLOWED_HOSTS = []` in `polls/settings.py` as follows:
+We need to change our Django settings to allow '192.168.99.100' (minikube traffic)
+in addition to '127.0.0.1' (local traffic). Change the line `ALLOWED_HOSTS = []` in
+`polls/settings.py` as follows:
 
-    ALLOWED_HOSTS = ['192.168.99.100']
+    ALLOWED_HOSTS = ['127.0.0.1', '192.168.99.100']
 
 [We should revisit these settings once everything runs behind a front-end.]
 
@@ -157,7 +158,7 @@ Run our dockerized app:
 
     $ kubectl create -f ./polls.yaml
 
-The 'service' component of `polls.yaml` is currently a stub so we will port-forward our pod (as usual, Ctrl-C to terminate):
+Lets check our deployment first. Port-forward our pod (as usual, Ctrl-C to terminate):
 
     $ kubectl port-forward polls-7bd58769c7-r27rr 8000:8000
     Forwarding from 127.0.0.1:8000 -> 8000
@@ -178,10 +179,11 @@ Lets increase the number of replicas to 2. Edit `polls.yaml`, save it, and apply
     $ kubectl apply -f ./polls.yaml
     Warning: kubectl apply should be used on resource created by either kubectl create --save-config or kubectl apply
     deployment "polls" configured
-    service "polls" unchanged
+    Warning: kubectl apply should be used on resource created by either kubectl create --save-config or kubectl apply
+    service "polls" configured
     $
 
-The warning is because this resource were created with `kubectl create`. If we change the replicas back to 1 and run `kubectl apply` again:
+The warnings are because these resources were created with `kubectl create`. If we change the replicas back to 1 and run `kubectl apply` again:
 
     $ kubectl apply -f ./polls.yaml
     deployment "polls" configured
@@ -219,7 +221,19 @@ Now we can try to access our Kubernetes pods through a Kubernetes service
 
     $ minikube service polls
 
-Everything works, so now we need to make it address a non-bundled back-end.
+We can access our service now, but things are pretty hit-and-miss. Most of
+the time we cannot even log in, and when we can which pod we get is kind of
+a crap-shoot (that's why we made sure each pod had different questions, so
+we could see which one we were accessing). Lets see if 'sticky sessions'
+helps at all - change `sessionAffinity` from `None` to `ClientIP`:
+
+    $ kubectl edit svc/polls
+
+Yes, that definitely does seem to improve things - no more inconsistent
+behaviour (eventually we will rely on our front-end for session management,
+this was simply a little experiment). Now that we know that the service part
+of `polls.yaml` works, we simply need to make our app address a non-bundled
+back-end.
 
 [Although it *works*, it looks pretty horrible as our `static` content is missing.
  We can fix that later, possibly with an `ingress` controller and/or nginx.]
