@@ -227,9 +227,11 @@ We can access our service now, but things are pretty hit-and-miss. Most of
 the time we cannot even log in, and when we can which pod we get is kind of
 a crap-shoot (that's why we made sure each pod had different questions, so
 we could see which one we were accessing). Lets see if 'sticky sessions'
-helps at all - change `sessionAffinity` from `None` to `ClientIP`:
+help at all:
 
-    $ kubectl edit svc/polls
+    $ kubectl apply -f ./polls-svc-sticky.yaml
+    service "polls" configured
+    $
 
 Yes, that definitely does seem to improve things - no more inconsistent
 behaviour (eventually we will rely on our front-end for session management,
@@ -238,7 +240,7 @@ of `polls.yaml` works, we simply need to make our app address a non-bundled
 back-end.
 
 [Although it *works*, it looks pretty horrible as our `static` content is missing.
- We can fix that later, possibly with an `ingress` controller and/or nginx.]
+ We can fix that later, probably with a front-end or an `ingress` controller.]
 
 Lets teardown our local Kubernetes infrastructure first:
 
@@ -319,7 +321,7 @@ Okay, we have a functional `postgres`. Lets tear it down:
 
 [We will go through this again in `minikube` shortly.]
 
-#### Configuration
+#### Django Configuration
 
 Change `polls/settings.py` as follows. First insert:
 
