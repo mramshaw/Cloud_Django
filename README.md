@@ -16,6 +16,8 @@ The plan of attack is as follows:
 * [Dockerize our app](https://github.com/mramshaw/Cloud_Django#docker)
 * [Run our app (minikube: local Kubernetes)](https://github.com/mramshaw/Cloud_Django#minikube)
 * [Migrate our app to PostgreSQL](https://github.com/mramshaw/Cloud_Django#migration-to-postgres)
+* [Software Versions](https://github.com/mramshaw/Cloud_Django#versions)
+* [Still To Do](https://github.com/mramshaw/Cloud_Django#to-do)
 
 Once all of this has been carried out locally, our app will be ready to be deployed in the cloud (AWS, Azure, GCP, etc.).
 
@@ -623,6 +625,18 @@ port-forwarding works).
     [3] 18121
     $ Forwarding from 127.0.0.1:8002 -> 8000
     $
+
+## Versions
+
+* Django 1.11.10
+* Docker 17.12.0-ce (Client and Server)
+* gunicorn 19.7.1
+* kubectl (Client: v1.8.6, Server: v1.9.0)
+* Kubernetes v1.9.0
+* minikube v0.25.0
+* psycopg2 2.7.4
+* Python - various
+* PostgreSQL 10.2
 
 ## To Do
 
