@@ -14,14 +14,14 @@ The plan of attack is as follows:
 
 * [Install and test 'gunicorn'](https://github.com/mramshaw/Cloud_Django#gunicorn)
 * [Dockerize our app](https://github.com/mramshaw/Cloud_Django#docker)
-    * [Django settings](https://github.com/mramshaw/Cloud_Django#django-settings)
+    * [Django Configuration (minikube)](https://github.com/mramshaw/Cloud_Django#django-configuration-minikube)
     * [Docker build](https://github.com/mramshaw/Cloud_Django#docker-build)
     * [Docker versions](https://github.com/mramshaw/Cloud_Django#docker-versions)
 * [Run our app (minikube: local Kubernetes)](https://github.com/mramshaw/Cloud_Django#minikube)
 * [Migrate our app to PostgreSQL](https://github.com/mramshaw/Cloud_Django#migration-to-postgres)
     * [psycopg2](https://github.com/mramshaw/Cloud_Django#psycopg2)
-    * [Docker (postgres)](https://github.com/mramshaw/Cloud_Django#docker-(postgres))
-    * [Django Configuration](https://github.com/mramshaw/Cloud_Django#django-configuration)
+    * [Docker (postgres)](https://github.com/mramshaw/Cloud_Django#docker-postgres)
+    * [Django Configuration (postgres)](https://github.com/mramshaw/Cloud_Django#django-configuration-postgres)
 * [Software Versions](https://github.com/mramshaw/Cloud_Django#versions)
 * [Still To Do](https://github.com/mramshaw/Cloud_Django#to-do)
 
@@ -111,7 +111,7 @@ The options are endless:
 
 [Of course, it doesn't really make any sense to Dockerize an app with a bundled database - but we will address that later.]
 
-## Django settings
+## Django Configuration (minikube)
 
 We need to change our Django settings to allow '192.168.99.100' (minikube traffic)
 in addition to '127.0.0.1' (local traffic). Change the line `ALLOWED_HOSTS = []` in
@@ -224,7 +224,7 @@ __Pod 2__
 
 ![Pod_2_Question_2](images/Pod_2_Question_2.png)
 
-Now we can try to access our Kubernetes pods through a Kubernetes servicepsycopg2
+Now we can try to access our Kubernetes pods through a Kubernetes service
 (this will pop open a browser):
 
     $ minikube service polls
@@ -243,7 +243,7 @@ were accessing). Lets see if 'sticky sessions' help at all:
 Yes, that definitely does seem to improve things - no more inconsistent
 behaviour (eventually we will rely on our front-end for session management,
 this was simply a little experiment). Now that we know that the service part
-of `polls.yaml` works, we simply need to make our app address a non-bundled
+of `polls.yaml` works, we simply need to make our app reference a non-bundled
 back-end.
 
 [Although it *works*, it looks pretty horrible as our `static` content is missing.
@@ -261,6 +261,9 @@ Finally:
     $
 
 # Migration to postgres
+
+Postgres is a mature database that offers replication, which is important for scaling in the cloud.
+And - as of the latest release - Postgres offers logical replication.
 
 We will repeat most of the steps listed here:
 
@@ -323,7 +326,7 @@ Okay, we have a functional `postgres`. Lets tear it down:
 
 [We will go through this again in `minikube` shortly.]
 
-## Django Configuration
+## Django Configuration (postgres)
 
 Change `polls/settings.py` as follows. First insert:
 
