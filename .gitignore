@@ -5,6 +5,3 @@
 
 # This is from Writing_Django
 polls/
-
-build/
-dist/

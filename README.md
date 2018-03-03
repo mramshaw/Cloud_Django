@@ -609,7 +609,14 @@ And check versions:
 
 #### Replicated Django
 
-Lets change `polls.yaml` for our __2.0__ version and 3 replicas. Save it as 'polls-postgres.yaml' and run:
+Lets change `polls.yaml` for our __mramshaw4docs/python-django-gunicorn:2.0__ version and 3 replicas. Also, add:
+
+      sessionAffinity: ClientIP
+      sessionAffinityConfig:
+        clientIP:
+          timeoutSeconds: 10800
+
+Then save it as 'polls-postgres.yaml' and run:
 
     $ kubectl create -f ./polls-postgres.yaml
 
@@ -627,6 +634,20 @@ port-forwarding works).
     [3] 18121
     $ Forwarding from 127.0.0.1:8002 -> 8000
     $
+
+Finally, lets expose our `polls` service:
+
+    $ minikube service polls
+
+[This will pop open a browser.]
+
+To simply see the service address:
+
+    $ minikube service --url polls
+    http://192.168.99.100:30919
+    $
+
+[This can be opened in a browser.]
 
 ## Versions
 
