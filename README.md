@@ -14,8 +14,14 @@ The plan of attack is as follows:
 
 * [Install and test 'gunicorn'](https://github.com/mramshaw/Cloud_Django#gunicorn)
 * [Dockerize our app](https://github.com/mramshaw/Cloud_Django#docker)
+    * [Django settings](https://github.com/mramshaw/Cloud_Django#django-settings)
+    * [Docker build](https://github.com/mramshaw/Cloud_Django#docker-build)
+    * [Docker versions](https://github.com/mramshaw/Cloud_Django#docker-versions)
 * [Run our app (minikube: local Kubernetes)](https://github.com/mramshaw/Cloud_Django#minikube)
 * [Migrate our app to PostgreSQL](https://github.com/mramshaw/Cloud_Django#migration-to-postgres)
+    * [psycopg2](https://github.com/mramshaw/Cloud_Django#psycopg2)
+    * [Docker (postgres)](https://github.com/mramshaw/Cloud_Django#docker-(postgres))
+    * [Django Configuration](https://github.com/mramshaw/Cloud_Django#django-configuration)
 * [Software Versions](https://github.com/mramshaw/Cloud_Django#versions)
 * [Still To Do](https://github.com/mramshaw/Cloud_Django#to-do)
 
@@ -23,7 +29,7 @@ Once all of this has been carried out locally, our app will be ready to be deplo
 
 One of the convenient things about __minikube__ is that it is local; this saves a lot of upload/download time. It's ___fast___.
 
-## gunicorn
+# gunicorn
 
 To install locally:
 
@@ -76,7 +82,7 @@ Once more, with a config file:
 
 Okay, everything runs.
 
-## Docker
+# Docker
 
 Lets see if we can save some Docker build time:
 
@@ -105,7 +111,7 @@ The options are endless:
 
 [Of course, it doesn't really make any sense to Dockerize an app with a bundled database - but we will address that later.]
 
-#### Django settings
+## Django settings
 
 We need to change our Django settings to allow '192.168.99.100' (minikube traffic)
 in addition to '127.0.0.1' (local traffic). Change the line `ALLOWED_HOSTS = []` in
@@ -115,7 +121,7 @@ in addition to '127.0.0.1' (local traffic). Change the line `ALLOWED_HOSTS = []`
 
 [We should revisit these settings once everything runs behind a front-end.]
 
-#### Docker build
+## Docker build
 
 Lets build our dockerized app:
 
@@ -123,7 +129,7 @@ Lets build our dockerized app:
 
 Available from DockerHub [here](https://hub.docker.com/r/mramshaw4docs/python-django-gunicorn/).
 
-#### Docker versions
+## Docker versions
 
 Okay, lets check the software versions bundled in our Dockerized app:
 
@@ -139,7 +145,7 @@ Okay, lets check the software versions bundled in our Dockerized app:
 
 Apart from the Python version, the same software as in the original [Writing_Django](https://github.com/mramshaw/Writing_Django) project.
 
-## minikube
+# minikube
 
 Start minikube:
 
@@ -218,16 +224,17 @@ __Pod 2__
 
 ![Pod_2_Question_2](images/Pod_2_Question_2.png)
 
-Now we can try to access our Kubernetes pods through a Kubernetes service
+Now we can try to access our Kubernetes pods through a Kubernetes servicepsycopg2
 (this will pop open a browser):
 
     $ minikube service polls
 
-We can access our service now, but things are pretty hit-and-miss. Most of
-the time we cannot even log in, and when we can which pod we get is kind of
-a crap-shoot (that's why we made sure each pod had different questions, so
-we could see which one we were accessing). Lets see if 'sticky sessions'
-help at all:
+We can access our service now (note that this is a
+[NodePort](https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport)
+service), but things are pretty hit-and-miss. Most of the time we cannot even
+log in, and when we can which pod we get is kind of a crap-shoot (that's why
+we made sure each pod had different questions, so we could see which one we
+were accessing). Lets see if 'sticky sessions' help at all:
 
     $ kubectl apply -f ./polls-svc-sticky.yaml
     service "polls" configured
@@ -253,7 +260,7 @@ Finally:
     Machine stopped.
     $
 
-## Migration to postgres
+# Migration to postgres
 
 We will repeat most of the steps listed here:
 
@@ -261,7 +268,7 @@ We will repeat most of the steps listed here:
 
 However, we will be using __postgres__ instead of __sqlite__.
 
-#### psycopg2
+## psycopg2
 
 We will need the Python Postgres module `psycopg2`:
 
@@ -277,7 +284,7 @@ Verify the latest version:
 
 [2.7.4]
 
-#### Docker
+## Docker (postgres)
 
 We will use the official Docker image for `postgres`:
 
@@ -293,13 +300,8 @@ And a quick smoke test:
     psql (10.2)
     Type "help" for help.
     
-    postgres=# help
-    You are using psql, the command-line interface to PostgreSQL.
-    Type:  \copyright for distribution terms
-           \h for help with SQL commands
-           \? for help with psql commands
-           \g or terminate with semicolon to execute query
-           \q to quit
+    postgres=# \conninfo
+    You are connected to database "postgres" as user "postgres" on host "postgres" at port "5432".
     postgres=# SELECT 1;
      ?column? 
     ----------
@@ -321,7 +323,7 @@ Okay, we have a functional `postgres`. Lets tear it down:
 
 [We will go through this again in `minikube` shortly.]
 
-#### Django Configuration
+## Django Configuration
 
 Change `polls/settings.py` as follows. First insert:
 
@@ -350,7 +352,7 @@ It's actually even worse as we are using the __root__ postgres user and password
 The __default__ root user and password. We will need to harden all of this before
 we get too much further, but especially before any move into production.]
 
-#### minikube
+## minikube
 
 Start minikube:
 
@@ -368,6 +370,13 @@ And create our `polls` database:
     psql (10.2)
     Type "help" for help.
     
+    postgres=# \conninfo
+    You are connected to database "postgres" as user "postgres" via socket in "/var/run/postgresql" at port "5432".
+    postgres=#
+
+[This would be the point at which to ___harden___ everything with the `\password postgres` command and so forth,
+ but for testing purposes we will not do this.]
+
     postgres=# CREATE DATABASE polls;
     CREATE DATABASE
     postgres=# \q
@@ -582,7 +591,7 @@ Okay, we have a configured `postgres` backend. Now we can replicate our Django p
 
 We can kill our local server, as well as our `postgres` port-forwarding (but __not__ our postgres pod!).
 
-#### Docker build (postgres 2.0 build, includes 'psycopg2')
+## Docker build (postgres 2.0 build, includes 'psycopg2')
 
 Lets build our dockerized app again - this will be the __2.0__ version with postgres support:
 
@@ -607,7 +616,7 @@ And check versions:
 
 [Hmm, that should really have been Python 3, can fix later.]
 
-#### Replicated Django
+## Replicated Django
 
 Lets change `polls.yaml` for our __mramshaw4docs/python-django-gunicorn:2.0__ version and 3 replicas. Also, add:
 
@@ -649,7 +658,7 @@ To simply see the service address:
 
 [This can be opened in a browser.]
 
-## Versions
+# Versions
 
 * Django 1.11.10
 * Docker 17.12.0-ce (Client and Server)
@@ -661,14 +670,18 @@ To simply see the service address:
 * Python - various
 * PostgreSQL 10.2
 
-## To Do
+# To Do
 
 - [x] Upgrade to most recent __minikube__ (v0.25.0)
 - [x] Upgrade to most recent __kubectl__ (v1.8.6 - client, v1.9.0 - server)
 - [x] Verify `polls` app (written and tested with Python __2.7.12__) works with the latest Python (__3.6.4__)
+- [x] Experiment with `sticky sessions`
+- [ ] Experiment with various `service` types [__minikube__ does not support __LoadBalancer__ services]
 - [ ] Add Kubernetes health checks
 - [ ] Handle Django static content (CSS, etc.)
 - [ ] Harden Django/gunicorn configuration
 - [ ] Harden everything else with non-default passwords and credentials
 - [ ] Persist the back-end database
+- [ ] Replicate the back-end database (probably logically using WAL)
+- [ ] Investigate adding a cache (probably `redis` rather than `memcached` / `pgmemcache`)
 - [ ] Upgrade the 2.0 Django server to a 3.0 Django server (Python3)
