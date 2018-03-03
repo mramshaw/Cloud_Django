@@ -15,13 +15,20 @@ The plan of attack is as follows:
 * [Install and test 'gunicorn'](https://github.com/mramshaw/Cloud_Django#gunicorn)
 * [Dockerize our app](https://github.com/mramshaw/Cloud_Django#docker)
     * [Django Configuration (minikube)](https://github.com/mramshaw/Cloud_Django#django-configuration-minikube)
-    * [Docker build](https://github.com/mramshaw/Cloud_Django#docker-build)
+    * [Docker build (1.0)](https://github.com/mramshaw/Cloud_Django#docker-build-10)
     * [Docker versions](https://github.com/mramshaw/Cloud_Django#docker-versions)
 * [Run our app (minikube: local Kubernetes)](https://github.com/mramshaw/Cloud_Django#minikube)
 * [Migrate our app to PostgreSQL](https://github.com/mramshaw/Cloud_Django#migration-to-postgres)
     * [psycopg2](https://github.com/mramshaw/Cloud_Django#psycopg2)
     * [Docker (postgres)](https://github.com/mramshaw/Cloud_Django#docker-postgres)
     * [Django Configuration (postgres)](https://github.com/mramshaw/Cloud_Django#django-configuration-postgres)
+    * [Create postgres backend](https://github.com/mramshaw/Cloud_Django#create-postgres-backend)
+        * [Create test database](https://github.com/mramshaw/Cloud_Django#create-test-database)
+        * [Create test data](https://github.com/mramshaw/Cloud_Django#create-test-data)
+    * [Create Admin user](https://github.com/mramshaw/Cloud_Django#create-admin-user)
+    * [Test local Django](https://github.com/mramshaw/Cloud_Django#test-local-django)
+    * [Docker build (2.0)](https://github.com/mramshaw/Cloud_Django#docker-build-postgres-20-build-includes-psycopg2)
+    * [Replicated Django](https://github.com/mramshaw/Cloud_Django#replicated-django)
 * [Software Versions](https://github.com/mramshaw/Cloud_Django#versions)
 * [Still To Do](https://github.com/mramshaw/Cloud_Django#to-do)
 
@@ -121,7 +128,7 @@ in addition to '127.0.0.1' (local traffic). Change the line `ALLOWED_HOSTS = []`
 
 [We should revisit these settings once everything runs behind a front-end.]
 
-## Docker build
+## Docker build (1.0)
 
 Lets build our dockerized app:
 
@@ -161,6 +168,8 @@ Start minikube:
     Kubectl is now configured to use the cluster.
     Loading cached images from config file.
     $
+
+## Create postgres backend
 
 Run our dockerized app:
 
@@ -366,6 +375,8 @@ Start `postgres`:
 
     $ kubectl create -f ./postgres.yaml
 
+#### Create test database
+
 And create our `polls` database:
 
     $ kubectl exec -it polls-backend-67c86654df-xll2q sh
@@ -538,6 +549,8 @@ And __migrate__ again to apply our migrations:
 
 [Not quite what I expected, but makes sense as there haven't been any changes. If we check __showmigrations__ we will see everything is fine.]
 
+#### Create test data
+
 Now we will create some (different) poll questions:
 
     $ python manage.py shell
@@ -571,6 +584,8 @@ Now we will create some (different) poll questions:
     In [9]: quit
     $
 
+## Create Admin user
+
 Create an Admin user ('admin' and '123abcde' again):
 
     $ python manage.py createsuperuser
@@ -580,6 +595,8 @@ Create an Admin user ('admin' and '123abcde' again):
     Password (again): 
     Superuser created successfully.
     $
+
+## Test local Django
 
 Run our (local) server:
 
