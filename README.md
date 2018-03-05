@@ -17,12 +17,15 @@ The plan of attack is as follows:
     * [Django Configuration (minikube)](https://github.com/mramshaw/Cloud_Django#django-configuration-minikube)
     * [Docker build (1.0)](https://github.com/mramshaw/Cloud_Django#docker-build-10)
     * [Docker versions](https://github.com/mramshaw/Cloud_Django#docker-versions)
-* [Run our app (minikube: local Kubernetes)](https://github.com/mramshaw/Cloud_Django#minikube)
+* [Run our Dockerized app](https://github.com/mramshaw/Cloud_Django#run-our-dockerized-app)
+    * [minikube (local Kubernetes)](https://github.com/mramshaw/Cloud_Django#minikube-local-kubernetes)
+    * [Run Dockerized app](https://github.com/mramshaw/Cloud_Django#run-dockerized-app)
 * [Migrate our app to PostgreSQL](https://github.com/mramshaw/Cloud_Django#migration-to-postgres)
     * [psycopg2](https://github.com/mramshaw/Cloud_Django#psycopg2)
     * [Docker (postgres)](https://github.com/mramshaw/Cloud_Django#docker-postgres)
     * [Django Configuration (postgres)](https://github.com/mramshaw/Cloud_Django#django-configuration-postgres)
     * [Create postgres backend](https://github.com/mramshaw/Cloud_Django#create-postgres-backend)
+        * [minikube](https://github.com/mramshaw/Cloud_Django#minikube)
         * [Create test database](https://github.com/mramshaw/Cloud_Django#create-test-database)
         * [Create test data](https://github.com/mramshaw/Cloud_Django#create-test-data)
     * [Create Admin user](https://github.com/mramshaw/Cloud_Django#create-admin-user)
@@ -152,7 +155,11 @@ Okay, lets check the software versions bundled in our Dockerized app:
 
 Apart from the Python version, the same software as in the original [Writing_Django](https://github.com/mramshaw/Writing_Django) project.
 
-# minikube
+# Run our Dockerized app
+
+Lets quickly run and - more importantly - ___test___ our Dockerized app.
+
+## minikube (local Kubernetes)
 
 Start minikube:
 
@@ -169,7 +176,7 @@ Start minikube:
     Loading cached images from config file.
     $
 
-## Create postgres backend
+## Run Dockerized app
 
 Run our dockerized app:
 
@@ -339,7 +346,7 @@ Okay, we have a functional `postgres`. Lets tear it down:
 
     $ docker kill polls-postgres
 
-[We will go through this again in `minikube` shortly.]
+[We will go through this again in `Create postgres backend` shortly.]
 
 ## Django Configuration (postgres)
 
@@ -370,7 +377,9 @@ It's actually even worse as we are using the __root__ postgres user and password
 The __default__ root user and password. We will need to harden all of this before
 we get too much further, but especially before any move into production.]
 
-## minikube
+## Create postgres backend
+
+#### minikube
 
 Start minikube:
 
