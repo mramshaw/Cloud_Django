@@ -272,7 +272,13 @@ Finally:
 # Migration to postgres
 
 Postgres is a mature database that offers replication, which is important for scaling in the cloud.
-And - as of the latest release - Postgres offers logical replication.
+It has had _streaming_ replication since PostgreSQL 9 and - with PostgreSQL 10 - offers _logical_
+replication.
+
+[Streaming replication is _physical_ replication, where the replicas are binary copies. Replication
+ is at the block level with changes of these blindly propogated to the replicas. With _logical_
+ replication, record level changes are propogated. And these can be on a table by table, or even
+ record by record, basis. Think _sharding_.]
 
 We will repeat most of the steps listed here:
 

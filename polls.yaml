@@ -1,15 +1,30 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: polls
+  labels:
+    application: polls
+spec:
+  type: NodePort
+  ports:
+  - port: 8000
+    protocol: TCP
+    targetPort: 8000
+  selector:
+    application: polls
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: polls
   labels:
-    run: polls
+    application: polls
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        run: polls
+        application: polls
     spec:
       containers:
       - name: polls-app
@@ -18,20 +33,3 @@ spec:
         ports:
         - containerPort: 8000
           protocol: TCP
-
----
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: polls
-  labels:
-    run: polls
-spec:
-  type: NodePort
-  ports:
-  - port: 8000
-    protocol: TCP
-    targetPort: 8000
-  selector:
-    run: polls

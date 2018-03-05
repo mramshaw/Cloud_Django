@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: polls
   labels:
-    run: polls
+    application: polls
 spec:
   type: NodePort
   sessionAffinity: ClientIP
@@ -15,4 +15,4 @@ spec:
     protocol: TCP
     targetPort: 8000
   selector:
-    run: polls
+    application: polls
