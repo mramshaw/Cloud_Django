@@ -442,7 +442,7 @@ Port-forward our postgres pod (as usual, Ctrl-C to terminate):
 
 In a new window, run our Django server (needs to be in the folder where `manage.py` resides):
 
-    $ cd pollsc17cb720109a
+    $ cd polls
     $ ls -al
     total 64
     drwxrwxr-x 4 owner owner  4096 Feb 15 22:46 .
@@ -739,7 +739,6 @@ And finally, close everything down:
 - [x] Experiment with `sticky sessions`
 - [x] Experiment with various `service` types [__minikube__ does not support __LoadBalancer__ services]
 - [ ] Add Kubernetes health checks
-- [ ] Add Prometheus-style instrumentation
 - [ ] Handle Django static content (CSS, etc.)
 - [ ] Harden Django/gunicorn configuration
 - [ ] Harden everything else with non-default passwords and credentials
