@@ -17,21 +17,29 @@ The plan of attack is as follows:
     * [Django Configuration (minikube)](https://github.com/mramshaw/Cloud_Django#django-configuration-minikube)
     * [Docker build (1.0)](https://github.com/mramshaw/Cloud_Django#docker-build-10)
     * [Docker versions](https://github.com/mramshaw/Cloud_Django#docker-versions)
-* [Run our Dockerized app](https://github.com/mramshaw/Cloud_Django#run-our-dockerized-app)
+* [Run our Dockerized app (1.0)](https://github.com/mramshaw/Cloud_Django#run-our-dockerized-app-10)
     * [minikube (local Kubernetes)](https://github.com/mramshaw/Cloud_Django#minikube-local-kubernetes)
     * [Run Dockerized app](https://github.com/mramshaw/Cloud_Django#run-dockerized-app)
+        * [Check polls deployment](https://github.com/mramshaw/Cloud_Django#check-polls-deployment)
+        * [Scale up](https://github.com/mramshaw/Cloud_Django#scale-up)
+        * [Check polls service](https://github.com/mramshaw/Cloud_Django#check-polls-service)
+        * [Sticky sessions](https://github.com/mramshaw/Cloud_Django#sticky-sessions)
+    * [Teardown](https://github.com/mramshaw/Cloud_Django#teardown)
 * [Migrate our app to PostgreSQL](https://github.com/mramshaw/Cloud_Django#migration-to-postgres)
     * [psycopg2](https://github.com/mramshaw/Cloud_Django#psycopg2)
     * [Docker (postgres)](https://github.com/mramshaw/Cloud_Django#docker-postgres)
-    * [Django Configuration (postgres)](https://github.com/mramshaw/Cloud_Django#django-configuration-postgres)
+    * [Django Configuration (local postgres)](https://github.com/mramshaw/Cloud_Django#django-configuration-local-postgres)
     * [Create postgres backend](https://github.com/mramshaw/Cloud_Django#create-postgres-backend)
         * [minikube](https://github.com/mramshaw/Cloud_Django#minikube)
         * [Create test database](https://github.com/mramshaw/Cloud_Django#create-test-database)
+        * [Run Django migrations](https://github.com/mramshaw/Cloud_Django#run-django-migrations)
         * [Create test data](https://github.com/mramshaw/Cloud_Django#create-test-data)
     * [Create Admin user](https://github.com/mramshaw/Cloud_Django#create-admin-user)
     * [Test local Django](https://github.com/mramshaw/Cloud_Django#test-local-django)
     * [Docker build (2.0)](https://github.com/mramshaw/Cloud_Django#docker-build-postgres-20-build-includes-psycopg2)
     * [Replicated Django](https://github.com/mramshaw/Cloud_Django#replicated-django)
+* [Run our Dockerized app (2.0)](https://github.com/mramshaw/Cloud_Django#run-our-dockerized-app-20)
+* [Final teardown](https://github.com/mramshaw/Cloud_Django#final-teardown)
 * [Software Versions](https://github.com/mramshaw/Cloud_Django#versions)
 * [Still To Do](https://github.com/mramshaw/Cloud_Django#to-do)
 
@@ -182,6 +190,8 @@ Run our dockerized app:
 
     $ kubectl create -f ./polls.yaml
 
+#### Check polls deployment
+
 Lets check our deployment first. Port-forward our pod (as usual, Ctrl-C to terminate):
 
     $ kubectl port-forward polls-7bd58769c7-r27rr 8000:8000
@@ -197,6 +207,8 @@ Okay, so now we know the deployment portion of our `yaml` is good. We can kill o
 
     Handling connection for 8000
     ^C$
+
+#### Scale up
 
 Lets increase the number of replicas to 2. Edit `polls.yaml`, save it, and apply it:
 
@@ -240,6 +252,8 @@ __Pod 2__
 
 ![Pod_2_Question_2](images/Pod_2_Question_2.png)
 
+#### Check polls service
+
 Now we can try to access our Kubernetes pods through a Kubernetes service
 (this will pop open a browser):
 
@@ -250,7 +264,11 @@ We can access our service now (note that this is a
 service), but things are pretty hit-and-miss. Most of the time we cannot even
 log in, and when we can which pod we get is kind of a crap-shoot (that's why
 we made sure each pod had different questions, so we could see which one we
-were accessing). Lets see if 'sticky sessions' help at all:
+were accessing).
+
+#### Sticky sessions
+
+Lets see if 'sticky sessions' help at all:
 
     $ kubectl apply -f ./polls-svc-sticky.yaml
     service "polls" configured
@@ -265,7 +283,9 @@ back-end.
 [Although it *works*, it looks pretty horrible as our `static` content is missing.
  We can fix that later, probably with a front-end or an `ingress` controller.]
 
-Lets teardown our local Kubernetes infrastructure first:
+## Teardown
+
+Lets teardown our local Kubernetes infrastructure:
 
     $ kubectl delete svc/polls deploy/polls
 
@@ -346,9 +366,9 @@ Okay, we have a functional `postgres`. Lets tear it down:
 
     $ docker kill polls-postgres
 
-[We will go through this again in `Create postgres backend` shortly.]
+We will go through most of this again in [Create postgres backend](#create-postgres-backend) shortly.
 
-## Django Configuration (postgres)
+## Django Configuration (local postgres)
 
 Change `polls/settings.py` as follows. First insert:
 
@@ -358,8 +378,8 @@ Change `polls/settings.py` as follows. First insert:
             'NAME': 'polls',
             'USER': 'postgres',
             'PASSWORD': 'postgres',
-            'HOST': os.getenv('POLLS_BACKEND_SERVICE_HOST', '127.0.0.1'),
-            'PORT': os.getenv('POLLS_BACKEND_SERVICE_PORT', 5432)
+            'HOST': '127.0.0.1',
+            'PORT': 5432
         }
     }
 
@@ -392,7 +412,7 @@ Start `postgres`:
 
 #### Create test database
 
-And create our `polls` database:
+Shell into our backend pod and create our `polls` database:
 
     $ kubectl exec -it polls-backend-67c86654df-xll2q sh
     / # psql -U postgres
@@ -412,13 +432,17 @@ And create our `polls` database:
     / # exit
     $
 
+#### Run Django migrations
+
+Much like PHP's Laravel framework, Django will handle SQL generation and migration for any defined data structures.
+
 Port-forward our postgres pod (as usual, Ctrl-C to terminate):
 
     $ kubectl port-forward polls-backend-67c86654df-xll2q 5432:5432
 
 In a new window, run our Django server (needs to be in the folder where `manage.py` resides):
 
-    $ cd polls
+    $ cd pollsc17cb720109a
     $ ls -al
     total 64
     drwxrwxr-x 4 owner owner  4096 Feb 15 22:46 .
@@ -664,22 +688,9 @@ Then save it as 'polls-postgres.yaml' and run:
 
     $ kubectl create -f ./polls-postgres.yaml
 
-Our service is _still_ a stub, the plan here is to port-forward each pod to verify that they all use the same back-end.
-We will use a different local port for each pod, plus we will run everything in the background (since we know that
-port-forwarding works).
+# Run our Dockerized app (2.0)
 
-    $ kubectl port-forward polls-55b6488bb4-gvc6p 8000:8000 &
-    [1] 18093
-    $ Forwarding from 127.0.0.1:8000 -> 8000
-    kubectl port-forward polls-55b6488bb4-r9kgr 8001:8000 &
-    [2] 18108
-    $ Forwarding from 127.0.0.1:8001 -> 8000
-    kubectl port-forward polls-55b6488bb4-vxxtc 8002:8000 &
-    [3] 18121
-    $ Forwarding from 127.0.0.1:8002 -> 8000
-    $
-
-Finally, lets expose our `polls` service:
+Finally, lets try out our latest `polls` service:
 
     $ minikube service polls
 
@@ -692,6 +703,21 @@ To simply see the service address:
     $
 
 [This can be opened in a browser.]
+
+# Final teardown
+
+And finally, close everything down:
+
+    $ kubectl delete -f ./polls-postgres.yaml
+    service "polls" deleted
+    deployment "polls" deleted
+    $ kubectl delete -f ./postgres.yaml
+    service "polls-backend" deleted
+    deployment "polls-backend" deleted
+    $ minikube stop
+    Stopping local Kubernetes cluster...
+    Machine stopped.
+    $
 
 # Versions
 
@@ -711,8 +737,9 @@ To simply see the service address:
 - [x] Upgrade to most recent __kubectl__ (v1.8.6 - client, v1.9.0 - server)
 - [x] Verify `polls` app (written and tested with Python __2.7.12__) works with the latest Python (__3.6.4__)
 - [x] Experiment with `sticky sessions`
-- [ ] Experiment with various `service` types [__minikube__ does not support __LoadBalancer__ services]
+- [x] Experiment with various `service` types [__minikube__ does not support __LoadBalancer__ services]
 - [ ] Add Kubernetes health checks
+- [ ] Add Prometheus-style instrumentation
 - [ ] Handle Django static content (CSS, etc.)
 - [ ] Harden Django/gunicorn configuration
 - [ ] Harden everything else with non-default passwords and credentials
