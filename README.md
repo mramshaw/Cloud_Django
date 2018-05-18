@@ -303,8 +303,8 @@ It has had _streaming_ replication since PostgreSQL 9 and - with PostgreSQL 10 -
 replication.
 
 [Streaming replication is _physical_ replication, where the replicas are binary copies. Replication
- is at the block level with changes of these blindly propogated to the replicas. With _logical_
- replication, record level changes are propogated. And these can be on a table by table, or even
+ is at the block level with changes of these blindly propagated to the replicas. With _logical_
+ replication, record level changes are propagated. And these can be on a table by table, or even
  record by record, basis. Think _sharding_.]
 
 We will repeat most of the steps listed here:
