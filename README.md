@@ -163,7 +163,7 @@ Okay, lets check the software versions bundled in our Dockerized app:
 
 Apart from the Python version, the same software as in the original [Writing_Django](https://github.com/mramshaw/Writing_Django) project.
 
-# Run our Dockerized app
+# Run our Dockerized app (1.0)
 
 Lets quickly run and - more importantly - ___test___ our Dockerized app.
 
