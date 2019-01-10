@@ -57,7 +57,7 @@ As usual, replace `pip` with `pip3` for Python3.
 
 To verify the version:
 
-    $ pip list --format=legacy | grep gunicorn
+    $ pip list --format=freeze | grep gunicorn
 
 Or simply use the `requirements.txt` file:
 
@@ -323,7 +323,7 @@ We will need the Python Postgres module `psycopg2`:
 
 Verify the latest version:
 
-    $ pip list --format=legacy | grep psycopg2
+    $ pip list --format=freeze | grep psycopg2
     psycopg2 (2.7.4)
     $
 
@@ -667,8 +667,8 @@ And check versions:
     1.11.10
     /usr/src/app # gunicorn --version
     gunicorn (version 19.7.1)
-    /usr/src/app # pip list --format=legacy | grep psycopg2-binary
-    /usr/src/app # pip list --format=legacy | grep psycopg2
+    /usr/src/app # pip list --format=freeze | grep psycopg2-binary
+    /usr/src/app # pip list --format=freeze | grep psycopg2
     psycopg2 (2.7.4)
     /usr/src/app # exit
     $
@@ -738,6 +738,7 @@ And finally, close everything down:
 - [x] Verify `polls` app (written and tested with Python __2.7.12__) works with the latest Python (__3.6.4__)
 - [x] Experiment with `sticky sessions`
 - [x] Experiment with various `service` types [__minikube__ does not support __LoadBalancer__ services]
+- [x] Update `pip` instructions for latest `pip` (format: __freeze__ replaces __legacy__)
 - [ ] Add Kubernetes health checks
 - [ ] Handle Django static content (CSS, etc.)
 - [ ] Harden Django/gunicorn configuration
