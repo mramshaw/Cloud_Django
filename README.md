@@ -1,5 +1,7 @@
 # Cloud Django
 
+[![Known Vulnerabilities](http://snyk.io/test/github/mramshaw/Cloud_Django/badge.svg?style=plastic&targetFile=requirements.txt)](http://snyk.io/test/github/mramshaw/Cloud_Django?style=plastic&targetFile=requirements.txt)
+
 This project follows on from my [Writing_Django](https://github.com/mramshaw/Writing_Django) project, which is a simple Hello World in Django.
 
 It will use [gunicorn](http://gunicorn.org/) which is a web server for [Django](https://docs.djangoproject.com/en/1.11/howto/deployment/wsgi/gunicorn/).
@@ -733,6 +735,7 @@ And finally, close everything down:
 
 # To Do
 
+- [x] Add a Snyk.io vulnerability scan badge
 - [x] Upgrade to most recent __minikube__ (v0.25.0)
 - [x] Upgrade to most recent __kubectl__ (v1.8.6 - client, v1.9.0 - server)
 - [x] Verify `polls` app (written and tested with Python __2.7.12__) works with the latest Python (__3.6.4__)
