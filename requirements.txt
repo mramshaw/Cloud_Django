@@ -1,2 +1,2 @@
-Django==1.11.10
-gunicorn==19.7.1
+Django==3.2.15
+gunicorn==19.10.0
